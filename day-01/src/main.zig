@@ -2,15 +2,13 @@ const std = @import("std");
 const input = @embedFile("input.txt");
 
 pub fn main() !void {
-    var lines = std.mem.tokenizeScalar(u8, input, '\n');
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer std.debug.assert(gpa.deinit() == .ok);
-    const allocator = gpa.allocator();
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
 
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     var xs = std.ArrayList(i32).init(allocator);
-    defer xs.deinit();
     var ys = std.ArrayList(i32).init(allocator);
-    defer ys.deinit();
 
     while (lines.next()) |line| {
         var nums = std.mem.tokenizeScalar(u8, line, ' ');

@@ -2,18 +2,12 @@ const std = @import("std");
 const input = @embedFile("input.txt");
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer std.debug.assert(gpa.deinit() == .ok);
-    const allocator = gpa.allocator();
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
 
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
     var reports = std.ArrayList(std.ArrayList(i32)).init(allocator);
-    defer {
-        for (reports.items) |report| {
-            report.deinit();
-        }
-        reports.deinit();
-    }
 
     while (lines.next()) |line| {
         var levels = std.mem.tokenizeScalar(u8, line, ' ');
@@ -72,7 +66,6 @@ fn isSafeWithoutOne(report: std.ArrayList(i32)) !bool {
 
     for (0..report.items.len) |at| {
         const fixed = try without(&report, at);
-        defer fixed.deinit();
         if (isSafe(fixed.items)) {
             return true;
         }
